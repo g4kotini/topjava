@@ -1,0 +1,36 @@
+table {
+    border-collapse: collapse;
+}
+
+th, td {
+    padding: 10px;
+}
+
+table, th, td {
+    border: 1px solid black;
+}
+
+tr.excess {
+    color: red;
+}
+
+tr.norm {
+    color: green;
+}
+
+form.meal-update-form {
+    display: table;
+}
+
+div.meal-update-form-part {
+    display: table-row;
+}
+
+label, input {
+    display: table-cell;
+    margin-bottom: 10px;
+}
+
+label {
+    padding-right: 10px;
+}
