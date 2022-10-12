@@ -11,11 +11,9 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
@@ -28,7 +26,7 @@ public class MealServlet extends HttpServlet {
     @Override
     public void init() {
         log.info("Servlet is created");
-        repository = InMemoryMealRepository.getInstance();
+        repository = new InMemoryMealRepository();
     }
 
     @Override
@@ -49,18 +47,13 @@ public class MealServlet extends HttpServlet {
                 log.debug("Update GET request params: \n Id: {}", id);
                 Meal meal = repository.getById(id);
                 req.setAttribute("meal", meal);
-                req.setAttribute("create", false);
-                req.getRequestDispatcher("/WEB-INF/jsp/create.jsp").forward(req, resp);
+                req.getRequestDispatcher("create-update-meal.jsp").forward(req, resp);
                 break;
             }
             case "create": {
                 log.trace("Create GET request");
-                req.setAttribute("create", true);
-                req.setAttribute(
-                        "meal",
-                        new Meal(null, LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES),
-                                "", 1000));
-                req.getRequestDispatcher("/WEB-INF/jsp/create.jsp").forward(req, resp);
+                req.setAttribute("meal", new Meal(null, LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES), "", 1000));
+                req.getRequestDispatcher("create-update-meal.jsp").forward(req, resp);
                 break;
             }
             default: {
@@ -68,7 +61,7 @@ public class MealServlet extends HttpServlet {
                 List<MealTo> mealTos = MealsUtil.filteredByStreams(
                         repository.getAll(), LocalTime.MIN, LocalTime.MAX, MealsUtil.CALORIES_PER_DAY);
                 req.setAttribute("mealTos", mealTos);
-                req.getRequestDispatcher("/WEB-INF/jsp/meals.jsp").forward(req, resp);
+                req.getRequestDispatcher("meals.jsp").forward(req, resp);
             }
         }
     }
@@ -84,9 +77,8 @@ public class MealServlet extends HttpServlet {
         log.debug(
                 "Update or create POST request params: \n Id: {} \n Description: {} \n Date & Time: {} \n Calories: {}",
                 id, description, dateTime, calories);
-        System.out.println(description); // ugly console output but logs is ok, no reason
         Meal meal = new Meal(id, dateTime, description, calories);
-        repository.updateOrCreate(meal);
+        repository.createOrUpdate(meal);
         resp.sendRedirect(req.getContextPath() + "/meals");
     }
 }

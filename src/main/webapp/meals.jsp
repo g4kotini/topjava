@@ -21,10 +21,9 @@
     </tr>
     <c:forEach var="mealTo" items="${mealTos}">
         <tr class="${mealTo.excess ? 'red' : 'green'}">
-            <td hidden><c:out value="${mealTo.id}"/></td>
-            <td><c:out value="${f:formatLocalDateTime(mealTo.dateTime, 'dd.MM.yyyy hh:mm')}"/></td>
-            <td><c:out value="${mealTo.description}"/></td>
-            <td><c:out value="${mealTo.calories}"/></td>
+            <td>${f:formatLocalDateTime(mealTo.dateTime)}</td>
+            <td>${mealTo.description}</td>
+            <td>${mealTo.calories}</td>
             <td><a href="${pageContext.request.contextPath}/meals?action=update&id=${mealTo.id}">Update</a></td>
             <td><a href="${pageContext.request.contextPath}/meals?action=delete&id=${mealTo.id}">Delete</a></td>
         </tr>

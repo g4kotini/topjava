@@ -6,17 +6,12 @@ import java.time.LocalTime;
 
 public class Meal {
     private Integer id;
+
     private final LocalDateTime dateTime;
 
     private final String description;
 
     private final int calories;
-
-    public Meal(LocalDateTime dateTime, String description, int calories) {
-        this.dateTime = dateTime;
-        this.description = description;
-        this.calories = calories;
-    }
 
     public Meal(Integer id, LocalDateTime dateTime, String description, int calories) {
         this.id = id;
@@ -25,11 +20,16 @@ public class Meal {
         this.calories = calories;
     }
 
+    public Meal(LocalDateTime dateTime, String description, int calories) {
+        this(null, dateTime, description, calories);
+    }
+
     public Meal(Meal meal) {
-        this.id = meal.getId();
-        this.dateTime = meal.getDateTime();
-        this.description = meal.getDescription();
-        this.calories = meal.getCalories();
+        this(meal.getId(), meal.getDateTime(), meal.getDescription(), meal.getCalories());
+    }
+
+    public Meal(Integer id, Meal meal) {
+        this(id, meal.getDateTime(), meal.getDescription(), meal.getCalories());
     }
 
     public Integer getId() {
@@ -60,7 +60,7 @@ public class Meal {
         if (this.id == null) {
             this.id = id;
         } else {
-            throw new UnsupportedOperationException("Meal id already set.");
+            throw new UnsupportedOperationException("Meal id is already set");
         }
     }
 }

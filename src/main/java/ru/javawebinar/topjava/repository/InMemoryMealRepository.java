@@ -6,6 +6,7 @@ import ru.javawebinar.topjava.model.Meal;
 import java.time.LocalDateTime;
 import java.time.Month;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -16,36 +17,19 @@ import static org.slf4j.LoggerFactory.getLogger;
 public class InMemoryMealRepository implements MealRepository {
     private static final Logger log = getLogger(InMemoryMealRepository.class);
 
-    private static final InMemoryMealRepository instance = new InMemoryMealRepository();
-
     private final Map<Integer, Meal> meals = new ConcurrentHashMap<>();
 
     private final AtomicInteger counter = new AtomicInteger(1);
 
     {
-        create(new Meal(LocalDateTime.of(2022, Month.OCTOBER, 10, 7, 0), "Завтрак", 500));
-        create(new Meal(LocalDateTime.of(2022, Month.OCTOBER, 10, 13, 0), "Обед", 500));
-        create(new Meal(LocalDateTime.of(2022, Month.OCTOBER, 10, 19, 0), "Ужин", 1000));
-        create(new Meal(LocalDateTime.of(2022, Month.OCTOBER, 9, 9, 0), "Завтрак", 600));
-        create(new Meal(LocalDateTime.of(2022, Month.OCTOBER, 9, 14, 0), "Обед", 500));
-        create(new Meal(LocalDateTime.of(2022, Month.OCTOBER, 9, 18, 0), "Ужин", 1000));
-    }
-
-    private InMemoryMealRepository() {
-
-    }
-
-    public static InMemoryMealRepository getInstance() {
-        return instance;
-    }
-
-    @Override
-    public Meal create(Meal meal) {
-        int id = counter.getAndIncrement();
-        meal.setId(id);
-        meals.put(id, meal);
-        log.info("Create meal: \n {} \n and set id = {}", meal, id);
-        return meal;
+        Arrays.asList(
+                new Meal(LocalDateTime.of(2022, Month.OCTOBER, 10, 7, 0), "Завтрак", 500),
+                new Meal(LocalDateTime.of(2022, Month.OCTOBER, 10, 13, 0), "Обед", 500),
+                new Meal(LocalDateTime.of(2022, Month.OCTOBER, 10, 19, 0), "Ужин", 1000),
+                new Meal(LocalDateTime.of(2022, Month.OCTOBER, 9, 9, 0), "Завтрак", 600),
+                new Meal(LocalDateTime.of(2022, Month.OCTOBER, 9, 14, 0), "Обед", 500),
+                new Meal(LocalDateTime.of(2022, Month.OCTOBER, 9, 18, 0), "Ужин", 1000)
+        ).forEach(this::createOrUpdate);
     }
 
     @Override
@@ -61,14 +45,29 @@ public class InMemoryMealRepository implements MealRepository {
     }
 
     @Override
-    public void deleteById(int id) {
+    public boolean deleteById(int id) {
         log.info("Delete meal by id={}", id);
-        meals.remove(id);
+        return meals.remove(id) != null;
     }
 
     @Override
-    public Meal updateOrCreate(Meal meal) {
-        Integer id = meal.getId();
-        return id == null ? create(meal) : meals.put(id, meal);
+    public Meal createOrUpdate(Meal meal) {
+        Integer currentId = meal.getId();
+        if (currentId == null) {
+            int newId = counter.getAndIncrement();
+            log.debug("Create new meal with id={}", newId);
+            meal.setId(newId);
+            meals.put(newId, meal);
+            return meal;
+        } else {
+            if (meals.get(currentId) == null) {
+                log.debug("There is no meals with id={}", currentId);
+                return null;
+            }
+            log.debug("Meal with id={} has been updated", currentId);
+            Meal newMeal = new Meal(meal);
+            meals.put(currentId, newMeal);
+            return newMeal;
+        }
     }
 }

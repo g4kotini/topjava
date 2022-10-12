@@ -1,16 +1,16 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <html>
+<jsp:useBean id="meal" scope="request" type="ru.javawebinar.topjava.model.Meal"/>
 <head>
-    <jsp:useBean id="create" scope="request" type="java.lang.Boolean"/>
-    <title>${create ? 'Create a new meal' : 'Update an existing meal'}</title>
+    <title>${meal.id == null ? 'Create a new meal' : 'Update an existing meal'}</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css"/>
 </head>
 <body>
 <ul>
     <li><a href="${pageContext.request.contextPath}/index.html">Home</a></li>
+    <li><a href="${pageContext.request.contextPath}/meals">Meals</a></li>
 </ul>
-<h3>${create ? 'Create a new meal' : 'Update an existing meal'}</h3>
-<jsp:useBean id="meal" scope="request" type="ru.javawebinar.topjava.model.Meal"/>
+<h3>${meal.id == null ? 'Create a new meal' : 'Update an existing meal'}</h3>
 <form action="${pageContext.request.contextPath}/meals" method="POST">
     <ul>
         <li>

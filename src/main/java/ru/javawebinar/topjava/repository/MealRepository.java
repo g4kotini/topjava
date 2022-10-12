@@ -7,11 +7,9 @@ import java.util.List;
 public interface MealRepository {
     List<Meal> getAll();
 
-    Meal create(Meal meal);
-
-    void deleteById(int id);
+    boolean deleteById(int id);
 
     Meal getById(int id);
 
-    Meal updateOrCreate(Meal meal);
+    Meal createOrUpdate(Meal meal);
 }
