@@ -24,10 +24,6 @@ public class Meal {
         this(null, dateTime, description, calories);
     }
 
-    public Meal(Meal meal) {
-        this(meal.getId(), meal.getDateTime(), meal.getDescription(), meal.getCalories());
-    }
-
     public Meal(Integer id, Meal meal) {
         this(id, meal.getDateTime(), meal.getDescription(), meal.getCalories());
     }

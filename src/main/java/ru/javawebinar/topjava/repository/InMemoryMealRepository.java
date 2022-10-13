@@ -60,14 +60,13 @@ public class InMemoryMealRepository implements MealRepository {
             meals.put(newId, meal);
             return meal;
         } else {
-            if (meals.get(currentId) == null) {
+            Meal updatedMeal = meals.computeIfPresent(currentId, (key, oldV) -> meal);
+            if (updatedMeal == null) {
                 log.debug("There is no meals with id={}", currentId);
-                return null;
+            } else {
+                log.debug("Meal with id={} has been updated", currentId);
             }
-            log.debug("Meal with id={} has been updated", currentId);
-            Meal newMeal = new Meal(meal);
-            meals.put(currentId, newMeal);
-            return newMeal;
+            return updatedMeal;
         }
     }
 }

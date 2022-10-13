@@ -47,13 +47,13 @@ public class MealServlet extends HttpServlet {
                 log.debug("Update GET request params: \n Id: {}", id);
                 Meal meal = repository.getById(id);
                 req.setAttribute("meal", meal);
-                req.getRequestDispatcher("create-update-meal.jsp").forward(req, resp);
+                req.getRequestDispatcher("createUpdateMeal.jsp").forward(req, resp);
                 break;
             }
             case "create": {
                 log.trace("Create GET request");
                 req.setAttribute("meal", new Meal(null, LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES), "", 1000));
-                req.getRequestDispatcher("create-update-meal.jsp").forward(req, resp);
+                req.getRequestDispatcher("createUpdateMeal.jsp").forward(req, resp);
                 break;
             }
             default: {
