@@ -9,6 +9,14 @@
 <ul style="font-size: large">
     <li><a href="users">Users</a></li>
     <li><a href="meals">Meals</a></li>
+    <form method="post" action="users">
+        <select name="userPick">
+            <option disabled>Choose current user</option>
+            <option value="1" selected>User (ID=1)</option>
+            <option value="2">Admin (ID=2)</option>
+        </select>
+        <input type="submit" value="Save">
+    </form>
 </ul>
 </body>
 </html>
