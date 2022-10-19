@@ -4,8 +4,10 @@ import org.slf4j.Logger;
 import org.springframework.stereotype.Repository;
 import ru.javawebinar.topjava.model.Meal;
 import ru.javawebinar.topjava.repository.MealRepository;
+import ru.javawebinar.topjava.util.DateTimeUtil;
 import ru.javawebinar.topjava.util.MealsUtil;
 
+import java.time.LocalDate;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -31,9 +33,9 @@ public class InMemoryMealRepository implements MealRepository {
     }
 
     @Override
-    public Meal save(Meal meal, int authUserId) {
-        log.info("save: authUserid={}, meal= \n {}", authUserId, meal);
-        Map<Integer, Meal> meals = repository.computeIfAbsent(authUserId, newKey -> new ConcurrentHashMap<>());
+    public Meal save(Meal meal, int userId) {
+        log.info("save: authUserid={}, meal= \n {}", userId, meal);
+        Map<Integer, Meal> meals = repository.computeIfAbsent(userId, newKey -> new ConcurrentHashMap<>());
         if (meal.isNew()) {
             int newMealId = counter.incrementAndGet();
             meal.setId(newMealId);
@@ -45,7 +47,7 @@ public class InMemoryMealRepository implements MealRepository {
             Meal updatedMeal = meals.computeIfPresent(currentMealId, (mealId, oldMealValue) -> meal);
             if (updatedMeal == null) {
                 log.info("There is no meal with id={} or this food does not belong to user with id={}",
-                        currentMealId, authUserId);
+                        currentMealId, userId);
             } else {
                 log.info("Meal with id={} has been updated", currentMealId);
             }
@@ -54,36 +56,40 @@ public class InMemoryMealRepository implements MealRepository {
     }
 
     @Override
-    public boolean delete(int id, int authUserId) {
-        log.info("delete: meal id={}, user id={}", id, authUserId);
-        Map<Integer, Meal> meals = repository.get(authUserId);
+    public boolean delete(int id, int userId) {
+        log.info("delete: meal id={}, user id={}", id, userId);
+        Map<Integer, Meal> meals = repository.get(userId);
         return meals != null && meals.remove(id) != null;
     }
 
     @Override
-    public Meal get(int id, int authUserId) {
-        log.info("get: meal id={}, user id={}", id, authUserId);
-        Map<Integer, Meal> meals = repository.get(authUserId);
+    public Meal get(int id, int userId) {
+        log.info("get: meal id={}, user id={}", id, userId);
+        Map<Integer, Meal> meals = repository.get(userId);
         return meals == null ? null : meals.get(id);
     }
 
     @Override
-    public List<Meal> getAll(int authUserId) {
-        log.info("get all: user id={}", authUserId);
-        Map<Integer, Meal> meals = repository.get(authUserId);
-        return meals == null ?
-                Collections.emptyList() :
-                meals.values().stream()
-                        .sorted(Comparator.comparing(Meal::getDateTime).reversed())
-                        .collect(Collectors.toList());
+    public List<Meal> getAll(int userId) {
+        log.info("get all: user id={}", userId);
+        return getFilteredSortedAll(userId, user -> true);
     }
 
     @Override
-    public List<Meal> getFiltered(Predicate<Meal> predicate, int authUserId) {
-        log.info("get filtered: user id={}", authUserId);
-        return getAll(authUserId).stream()
-                .filter(predicate)
-                .collect(Collectors.toList());
+    public List<Meal> getFilteredByDate(LocalDate startDate, LocalDate endDate, int userId) {
+        log.info("get filtered: user id={}", userId);
+        return getFilteredSortedAll(userId,
+                user -> DateTimeUtil.isBetweenClose(user.getDate(), startDate, endDate));
+    }
+
+    private List<Meal> getFilteredSortedAll(int userId, Predicate<Meal> predicate) {
+        Map<Integer, Meal> meals = repository.get(userId);
+        return meals == null ?
+                Collections.emptyList() :
+                meals.values().stream()
+                        .filter(predicate)
+                        .sorted(Comparator.comparing(Meal::getDateTime).reversed())
+                        .collect(Collectors.toList());
     }
 }
 

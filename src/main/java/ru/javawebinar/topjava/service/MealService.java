@@ -13,42 +13,45 @@ import java.util.List;
 
 @Service
 public class MealService {
-    private MealRepository repository;
+    private final MealRepository repository;
 
     public MealService(MealRepository repository) {
         this.repository = repository;
     }
 
-    public Meal save(Meal meal, int authUserId) {
-        if (meal.isNew()) {
-            ValidationUtil.checkNew(meal);
-        }
-        Meal savedMeal = repository.save(meal, authUserId);
-        ValidationUtil.checkNotFoundWithId(savedMeal, savedMeal.getId());
-        return repository.save(meal, authUserId);
+    public Meal create(Meal meal, int userId) {
+        ValidationUtil.checkNew(meal);
+        return repository.save(meal, userId);
     }
 
-    public boolean delete(int mealId, int authUserId) {
-        return repository.delete(mealId, authUserId);
+    public void update(Meal meal, int id, int userId) {
+        ValidationUtil.assureIdConsistent(meal, id);
+        ValidationUtil.checkNotFoundWithId(repository.save(meal, userId), id);
     }
 
-    public Meal get(int mealId, int authUserId) {
-        Meal meal = repository.get(mealId, authUserId);
+    public boolean delete(int mealId, int userId) {
+        return repository.delete(mealId, userId);
+    }
+
+    public Meal get(int mealId, int userId) {
+        Meal meal = repository.get(mealId, userId);
         ValidationUtil.checkNotFoundWithId(meal, meal.getId());
         return meal;
     }
 
-    public List<MealTo> getAll(int authUserId, int caloriesPerDay) {
-        List<Meal> userMeals = repository.getAll(authUserId);
+    public List<MealTo> getAll(int userId, int caloriesPerDay) {
+        List<Meal> userMeals = repository.getAll(userId);
         return MealsUtil.getTos(userMeals, caloriesPerDay);
     }
     
-    public List<MealTo> getFiltered(int authUserId, int caloriesPerDay, 
-                                    LocalDate startDate, LocalDate endDate, 
-                                    LocalTime startTime, LocalTime endTime) {
-        List<Meal> userMeals = repository.getFiltered(
-                meal -> meal.getDate().isAfter(startDate) && meal.getDate().isBefore(endDate),
-                authUserId);
+    public List<MealTo> getFilteredByDateTime(int userId, int caloriesPerDay,
+                                              LocalDate startDate, LocalDate endDate,
+                                              LocalTime startTime, LocalTime endTime) {
+        startDate = startDate == null ? LocalDate.MIN : startDate;
+        endDate = endDate == null ? LocalDate.MAX : endDate;
+        startTime = startTime == null ? LocalTime.MIN : startTime;
+        endTime = endTime == null ? LocalTime.MAX : endTime;
+        List<Meal> userMeals = repository.getFilteredByDate(startDate, endDate, userId);
         return MealsUtil.getFilteredTos(userMeals, caloriesPerDay, startTime, endTime);
     }
 }

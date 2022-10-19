@@ -7,7 +7,6 @@ import ru.javawebinar.topjava.model.User;
 import ru.javawebinar.topjava.repository.UserRepository;
 import ru.javawebinar.topjava.util.MealsUtil;
 
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -62,8 +61,9 @@ public class InMemoryUserRepository implements UserRepository {
     @Override
     public List<User> getAll() {
         log.info("getAll");
-        return new ArrayList<>(repository.values()).stream()
-                .sorted(Comparator.comparing(User::getName))
+        return repository.values().stream()
+                .sorted(Comparator.comparing(User::getName).
+                        thenComparing((user1, user2) -> user1.getEmail().compareToIgnoreCase(user2.getEmail())))
                 .collect(Collectors.toList());
     }
 
@@ -71,8 +71,8 @@ public class InMemoryUserRepository implements UserRepository {
     public User getByEmail(String email) {
         log.info("getByEmail {}", email);
         return repository.values().stream()
-                .filter(user -> user.getEmail().equals(email))
+                .filter(user -> user.getEmail().equalsIgnoreCase(email))
                 .findFirst()
-                .get();
+                .orElse(null);
     }
 }
