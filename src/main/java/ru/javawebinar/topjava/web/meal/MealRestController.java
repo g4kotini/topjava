@@ -5,6 +5,7 @@ import org.springframework.stereotype.Controller;
 import ru.javawebinar.topjava.model.Meal;
 import ru.javawebinar.topjava.service.MealService;
 import ru.javawebinar.topjava.to.MealTo;
+import ru.javawebinar.topjava.util.ValidationUtil;
 import ru.javawebinar.topjava.web.SecurityUtil;
 
 import java.time.LocalDate;
@@ -24,15 +25,17 @@ public class MealRestController {
     }
 
     public Meal create(Meal meal) {
+        ValidationUtil.checkNew(meal);
         int userId = SecurityUtil.authUserId();
         log.info("user {} create {}", userId, meal);
         return service.create(meal, SecurityUtil.authUserId());
     }
 
     public void update(Meal meal, int id) {
+        ValidationUtil.assureIdConsistent(meal, id);
         int userId = SecurityUtil.authUserId();
         log.info("user {} update {}", userId, meal);
-        service.update(meal, id, userId);
+        service.update(meal, userId);
     }
 
     public boolean delete(int mealId) {

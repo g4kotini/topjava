@@ -20,13 +20,12 @@ public class MealService {
     }
 
     public Meal create(Meal meal, int userId) {
-        ValidationUtil.checkNew(meal);
         return repository.save(meal, userId);
     }
 
-    public void update(Meal meal, int id, int userId) {
-        ValidationUtil.assureIdConsistent(meal, id);
-        ValidationUtil.checkNotFoundWithId(repository.save(meal, userId), id);
+    public void update(Meal meal, int userId) {
+        Meal savedMeal = repository.save(meal, userId);
+        ValidationUtil.checkNotFoundWithId(savedMeal, meal.getId());
     }
 
     public boolean delete(int mealId, int userId) {
@@ -35,7 +34,7 @@ public class MealService {
 
     public Meal get(int mealId, int userId) {
         Meal meal = repository.get(mealId, userId);
-        ValidationUtil.checkNotFoundWithId(meal, meal.getId());
+        ValidationUtil.checkNotFoundWithId(meal, mealId);
         return meal;
     }
 
