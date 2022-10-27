@@ -1,18 +1,14 @@
 package ru.javawebinar.topjava.service;
 
-import org.assertj.core.api.Assertions;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
-import org.springframework.dao.support.DataAccessUtils;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlConfig;
 import org.springframework.test.context.junit4.SpringRunner;
-import ru.javawebinar.topjava.MealTestData;
 import ru.javawebinar.topjava.UserTestData;
 import ru.javawebinar.topjava.model.Meal;
 import ru.javawebinar.topjava.util.exception.NotFoundException;
@@ -20,6 +16,7 @@ import ru.javawebinar.topjava.util.exception.NotFoundException;
 import java.util.Comparator;
 import java.util.List;
 
+import static org.junit.Assert.assertThrows;
 import static ru.javawebinar.topjava.MealTestData.*;
 
 @ContextConfiguration({
@@ -34,94 +31,86 @@ public class MealServiceTest {
     }
 
     @Autowired
-    MealService service;
-
-    @Autowired
-    JdbcTemplate jdbcTemplate;
+    private MealService service;
 
     @Test
-    public void createSuccess() {
-        Meal createdMeal = service.create(getNew(), UserTestData.USER_ID);
-        Integer createdMealId = createdMeal.getId();
-        Meal expectedMeal = getNew();
-        expectedMeal.setId(createdMealId);
-        Assertions.assertThat(createdMeal).usingRecursiveComparison().isEqualTo(expectedMeal);
+    public void create() {
+        Meal actual = service.create(getNew(), UserTestData.USER_ID);
+        Integer id = actual.getId();
+        Meal expected = service.get(id, UserTestData.USER_ID);
+        assertMatch(actual, expected);
     }
 
     @Test
-    public void createDuplicateDateTimeThrownDataAccessExceptionException() {
-        Assertions.assertThatExceptionOfType(DataAccessException.class).isThrownBy(() -> {
-            service.create(getNew(), UserTestData.USER_ID);
-            service.create(getNew(), UserTestData.USER_ID);
-        });
+    public void createDuplicateDateTime() {
+        service.create(getNew(), UserTestData.USER_ID);
+        assertThrows(DataAccessException.class, () -> service.create(getNew(), UserTestData.USER_ID));
     }
 
     @Test
-    public void updateUserMealSuccess() {
-        Meal existedAndUpdatedUserMeal = getExistUserMeal();
-        int existUserMealId = existedAndUpdatedUserMeal.getId();
-        existedAndUpdatedUserMeal.setCalories(1100);
-        service.update(existedAndUpdatedUserMeal, UserTestData.USER_ID);
-        Meal updatedMealFromDb = DataAccessUtils
-                .singleResult(jdbcTemplate
-                        .query("SELECT * FROM meals WHERE id=?", MealTestData.ROW_MAPPER, existUserMealId));
-        Assertions.assertThat(updatedMealFromDb).usingRecursiveComparison().isEqualTo(existedAndUpdatedUserMeal);
+    public void update() {
+        Meal updated = getUpdatedUserMeal();
+        int id = updated.getId();
+        service.update(updated, UserTestData.USER_ID);
+        Meal actual = service.get(id, UserTestData.USER_ID);
+        assertMatch(actual, getUpdatedUserMeal());
     }
 
     @Test
-    public void updateUserMealByGuestThrownNotFoundException() {
-        Meal existedAndUpdatedUserMeal = getExistUserMeal();
-        existedAndUpdatedUserMeal.setCalories(1100);
-        Assertions.assertThatExceptionOfType(NotFoundException.class)
-                .isThrownBy(() -> service.update(existedAndUpdatedUserMeal, UserTestData.GUEST_ID));
+    public void updateNotYoursMeal() {
+        Meal userMeal = getUpdatedUserMeal();
+        assertThrows(NotFoundException.class, () -> service.update(userMeal, UserTestData.GUEST_ID));
     }
 
     @Test
-    public void deleteSuccess() {
-        int existedUserMealId = getExistUserMeal().getId();
-        service.delete(existedUserMealId, UserTestData.USER_ID);
-        Assertions.assertThat(jdbcTemplate
-                .query("SELECT FROM meals WHERE id=?", ROW_MAPPER, existedUserMealId)).isEmpty();
+    public void delete() {
+        int userMealId = getExistUserMeal().getId();
+        service.delete(userMealId, UserTestData.USER_ID);
+        assertThrows(NotFoundException.class, () -> service.get(userMealId, UserTestData.USER_ID));
     }
 
     @Test
-    public void deleteUserMealByGuestThrownNotFoundException() {
-        int existedUserMealId = getExistUserMeal().getId();
-        Assertions.assertThatExceptionOfType(NotFoundException.class)
-                .isThrownBy(() -> service.delete(existedUserMealId, UserTestData.GUEST_ID));
+    public void deleteNotYoursMeal() {
+        int userMealId = getExistUserMeal().getId();
+        assertThrows(NotFoundException.class, () -> service.delete(userMealId, UserTestData.GUEST_ID));
     }
 
     @Test
-    public void getSuccess() {
-        Meal existedUserMeal = getExistUserMeal();
-        int existedUserMealId = existedUserMeal.getId();
-        Meal userMealFromService = service.get(existedUserMealId, UserTestData.USER_ID);
-        Assertions.assertThat(userMealFromService).usingRecursiveComparison().isEqualTo(existedUserMeal);
+    public void deleteNotExistentMeal() {
+        assertThrows(NotFoundException.class, () -> service.delete(NOT_EXISTENT_ID, UserTestData.USER_ID));
     }
 
     @Test
-    public void getUserMealByGuestThrownNotFoundException() {
-        int existedUserMealId = getExistUserMeal().getId();
-        Assertions.assertThatExceptionOfType(NotFoundException.class).isThrownBy(
-                () -> service.get(existedUserMealId, UserTestData.GUEST_ID));
+    public void get() {
+        Meal expected = getExistUserMeal();
+        int id = expected.getId();
+        Meal actual = service.get(id, UserTestData.USER_ID);
+        assertMatch(actual, expected);
     }
 
     @Test
-    public void getAllUserMealsSortedByDateTimeSuccess() {
-        List<Meal> userMealsFromService = service.getAll(UserTestData.USER_ID);
-        Assertions.assertThat(userMealsFromService)
-                .usingRecursiveComparison().ignoringCollectionOrder().isEqualTo(userMeals);
-        Assertions.assertThat(userMealsFromService)
-                .isSortedAccordingTo(Comparator.comparing(Meal::getDateTime).reversed());
+    public void getNotYoursMeal() {
+        int id = getExistUserMeal().getId();
+        assertThrows(NotFoundException.class, () -> service.get(id, UserTestData.GUEST_ID));
     }
 
     @Test
-    public void getBetweenHalfOpenUserMealsFilteredAndSortedByDateSuccess() {
-        List<Meal> userMealsFromService = service
+    public void getNotExistentMeal() {
+        assertThrows(NotFoundException.class, () -> service.get(NOT_EXISTENT_ID, UserTestData.USER_ID));
+    }
+
+    @Test
+    public void getAll() {
+        List<Meal> actual = service.getAll(UserTestData.USER_ID);
+        assertMatch(actual, userMeals);
+        isSorted(actual, Comparator.comparing(Meal::getDateTime).reversed());
+    }
+
+    @Test
+    public void getBetweenDates() {
+        List<Meal> actual = service
                 .getBetweenInclusive(START_DATE, END_DATE, UserTestData.USER_ID);
-        Assertions.assertThat(userMealsFromService)
-                .usingRecursiveComparison().ignoringCollectionOrder().isEqualTo(getBetweenDates());
-        Assertions.assertThat(userMealsFromService)
-                .isSortedAccordingTo(Comparator.comparing(Meal::getDateTime).reversed());
+        assertMatch(actual, userMealBetweenDates);
+        isSorted(actual, Comparator.comparing(Meal::getDateTime).reversed());
     }
 }

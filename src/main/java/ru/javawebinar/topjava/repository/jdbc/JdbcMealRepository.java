@@ -44,12 +44,12 @@ public class JdbcMealRepository implements MealRepository {
     @Override
     public Meal save(Meal meal, int userId) {
         log.info("user with id={} saving meal: \n {}", userId, meal);
-        MapSqlParameterSource parameters = new MapSqlParameterSource().
-                addValue("id", meal.getId()).
-                addValue("description", meal.getDescription()).
-                addValue("calories", meal.getCalories()).
-                addValue("dateTime", meal.getDateTime()).
-                addValue("user_id", userId);
+        MapSqlParameterSource parameters = new MapSqlParameterSource()
+                .addValue("id", meal.getId())
+                .addValue("description", meal.getDescription())
+                .addValue("calories", meal.getCalories())
+                .addValue("dateTime", meal.getDateTime())
+                .addValue("user_id", userId);
         if (meal.isNew()) {
             int newId = simpleInsert.executeAndReturnKey(parameters).intValue();
             meal.setId(newId);
@@ -85,6 +85,6 @@ public class JdbcMealRepository implements MealRepository {
     public List<Meal> getBetweenHalfOpen(LocalDateTime startDateTime, LocalDateTime endDateTime, int userId) {
         log.info("user with id={} getting all meals between {} and {}", userId, startDateTime, endDateTime);
         return jdbcTemplate.query("SELECT * FROM meals WHERE date_time>=? AND date_time<? " +
-                "AND user_id=? ORDER BY DATE_TIME DESC", ROW_MAPPER, startDateTime, endDateTime, userId);
+                "AND user_id=? ORDER BY date_time DESC", ROW_MAPPER, startDateTime, endDateTime, userId);
     }
 }
