@@ -11,13 +11,11 @@ import java.time.LocalTime;
 
 @Entity
 @Table(name = "meals")
-@Access(AccessType.FIELD)
 @NamedQueries({
-        @NamedQuery(name = Meal.DELETE, query = "DELETE FROM Meal m WHERE m.id =?1 AND m.user.id=?2"),
-        @NamedQuery(name = Meal.ALL_SORTED, query = "SELECT m FROM Meal m LEFT JOIN FETCH User u ON m.user.id=u.id " +
-                "WHERE u.id=?1 ORDER BY m.dateTime DESC"),
-        @NamedQuery(name = Meal.BETWEEN_HALF_OPEN, query = "SELECT m FROM Meal m LEFT JOIN FETCH User u ON m.user.id=u.id " +
-                "WHERE u.id=?1 AND m.dateTime >=?2 AND m.dateTime <?3 ORDER BY m.dateTime DESC")
+        @NamedQuery(name = Meal.DELETE, query = "DELETE FROM Meal m WHERE m.id=:id AND m.user.id=:userId"),
+        @NamedQuery(name = Meal.ALL_SORTED, query = "SELECT m FROM Meal m WHERE m.user.id=:userId ORDER BY m.dateTime DESC"),
+        @NamedQuery(name = Meal.BETWEEN_HALF_OPEN, query = "SELECT m FROM Meal m " +
+                "WHERE m.user.id=:userId AND m.dateTime>=:startDateTime AND m.dateTime<:endDateTime ORDER BY m.dateTime DESC")
 })
 public class Meal extends AbstractBaseEntity {
     public static final String DELETE = "Meal.delete";

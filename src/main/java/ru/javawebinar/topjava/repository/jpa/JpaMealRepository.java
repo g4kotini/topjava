@@ -26,11 +26,11 @@ public class JpaMealRepository implements MealRepository {
             em.persist(meal);
             return meal;
         } else {
-            Meal detachedMeal = em.find(Meal.class, meal.getId());
-            if (detachedMeal.getUser().id() == user.id()) {
-                meal.setUser(user);
-                em.merge(meal);
-                return meal;
+            Meal detached = get(meal.id(), userId);
+            if (detached != null) {
+                Meal merged = em.merge(meal);
+                merged.setUser(user);
+                return merged;
             }
         }
         return null;
@@ -40,34 +40,30 @@ public class JpaMealRepository implements MealRepository {
     @Transactional
     public boolean delete(int id, int userId) {
         return em.createNamedQuery(Meal.DELETE)
-                .setParameter(1, id)
-                .setParameter(2, userId)
+                .setParameter("id", id)
+                .setParameter("userId", userId)
                 .executeUpdate() != 0;
     }
 
     @Override
-    @Transactional
     public Meal get(int id, int userId) {
-        User user = em.getReference(User.class, userId);
         Meal meal = em.find(Meal.class, id);
-        return meal != null && meal.getUser().id() == user.id() ? meal : null;
+        return meal != null && meal.getUser().id() == userId ? meal : null;
     }
 
     @Override
-    @Transactional
     public List<Meal> getAll(int userId) {
         return em.createNamedQuery(Meal.ALL_SORTED, Meal.class)
-                .setParameter(1, userId)
+                .setParameter("userId", userId)
                 .getResultList();
     }
 
     @Override
-    @Transactional
     public List<Meal> getBetweenHalfOpen(LocalDateTime startDateTime, LocalDateTime endDateTime, int userId) {
         return em.createNamedQuery(Meal.BETWEEN_HALF_OPEN, Meal.class)
-                .setParameter(1, userId)
-                .setParameter(2, startDateTime)
-                .setParameter(3, endDateTime)
+                .setParameter("userId", userId)
+                .setParameter("startDateTime", startDateTime)
+                .setParameter("endDateTime", endDateTime)
                 .getResultList();
     }
 }
