@@ -12,7 +12,6 @@ import ru.javawebinar.topjava.service.MealServiceTest;
 public class DataJpaMealServiceTest extends MealServiceTest {
     @Test
     public void getWithUser() {
-        MealTestData.meal1.setUser(UserTestData.user);
         Meal meal = service.getWithUser(MealTestData.MEAL1_ID, UserTestData.USER_ID);
         MealTestData.MEAL_MATCHER.assertMatch(meal, MealTestData.meal1);
         UserTestData.USER_MATCHER.assertMatch(meal.getUser(), UserTestData.user);

@@ -16,8 +16,7 @@ import java.util.List;
 public class DataJpaUserServiceTest extends UserServiceTest {
     @Test
     public void getWithMeals() {
-        List<Meal> adminMeals = Arrays.asList(MealTestData.adminMeal1, MealTestData.adminMeal2);
-        UserTestData.admin.setMeals(adminMeals);
+        List<Meal> adminMeals = Arrays.asList(MealTestData.adminMeal2, MealTestData.adminMeal1);
         User admin = service.getWithMeals(UserTestData.ADMIN_ID);
         UserTestData.USER_MATCHER.assertMatch(admin, UserTestData.admin);
         MealTestData.MEAL_MATCHER.assertMatch(admin.getMeals(), adminMeals);
