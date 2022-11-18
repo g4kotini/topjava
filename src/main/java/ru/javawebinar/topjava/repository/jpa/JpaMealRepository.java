@@ -12,23 +12,21 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
-@Transactional(readOnly = true)
+//@Transactional(readOnly = true)
 public class JpaMealRepository implements MealRepository {
 
     @PersistenceContext
     private EntityManager em;
 
     @Override
-    @Transactional
+//    @Transactional
     public Meal save(Meal meal, int userId) {
         meal.setUser(em.getReference(User.class, userId));
         if (meal.isNew()) {
             em.persist(meal);
             return meal;
-        } else if (get(meal.id(), userId) == null) {
-            return null;
         }
-        return em.merge(meal);
+        return get(meal.id(), userId) == null ? null : em.merge(meal);
     }
 
     @Override
