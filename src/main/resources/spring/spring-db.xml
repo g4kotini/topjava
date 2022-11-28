@@ -13,6 +13,8 @@
        http://www.springframework.org/schema/data/jpa http://www.springframework.org/schema/data/jpa/spring-jpa.xsd
        http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee.xsd">
 
+    <tx:annotation-driven/>
+
     <jdbc:initialize-database data-source="dataSource" enabled="${database.init}">
         <jdbc:script location="${jdbc.initLocation}"/>
         <jdbc:script encoding="utf-8" location="classpath:db/populateDB.sql"/>
@@ -59,7 +61,6 @@
 
     <beans profile="jdbc">
         <!-- Enable Annotation based Declarative Transaction Management -->
-        <tx:annotation-driven/>
 
         <!-- Creating TransactionManager Bean, since JDBC we are creating of type
             DataSourceTransactionManager -->
@@ -110,8 +111,6 @@
                 </bean>
             </property>
         </bean>
-
-        <tx:annotation-driven/>
 
         <!-- Transaction manager for a single JPA EntityManagerFactory (alternative to JTA) -->
         <bean id="transactionManager" class="org.springframework.orm.jpa.JpaTransactionManager"
