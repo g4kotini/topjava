@@ -33,9 +33,5 @@ public class MatcherFactory {
         public void assertMatch(Iterable<T> actual, Iterable<T> expected) {
             assertThat(actual).usingRecursiveFieldByFieldElementComparatorIgnoringFields(fieldsToIgnore).isEqualTo(expected);
         }
-
-        public void assertMatchIgnoreOrder(Iterable<T> actual, T... expected) {
-            assertThat(actual).usingRecursiveFieldByFieldElementComparatorIgnoringFields(fieldsToIgnore).containsExactlyInAnyOrderElementsOf(List.of(expected));
-        }
     }
 }

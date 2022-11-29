@@ -6,6 +6,7 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.CacheManager;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.dao.DataAccessException;
 import ru.javawebinar.topjava.Profiles;
 import ru.javawebinar.topjava.UserTestData;
@@ -32,6 +33,7 @@ public abstract class AbstractUserServiceTest extends AbstractServiceTest {
 
 //    @Autowired(required = false)
 //    @Autowired
+//    @Lazy
     protected JpaUtil jpaUtil;
 
     @Autowired
@@ -40,13 +42,11 @@ public abstract class AbstractUserServiceTest extends AbstractServiceTest {
     @Before
     public void setup() {
         // anyway a new class is created before each test
-        if (!List.of(env.getActiveProfiles()).contains(Profiles.JDBC)) {
+        if (isJpaBased()) {
             jpaUtil = appCtx.getBean(JpaUtil.class);
-        }
-        cacheManager.getCache("users").clear();
-        if (jpaUtil != null) {
             jpaUtil.clear2ndLevelHibernateCache();
         }
+        cacheManager.getCache("users").clear();
     }
 
     @Test
@@ -104,13 +104,13 @@ public abstract class AbstractUserServiceTest extends AbstractServiceTest {
     @Test
     public void getAll() {
         List<User> all = service.getAll();
-        USER_MATCHER.assertMatchIgnoreOrder(all, admin, user, guest);
+        USER_MATCHER.assertMatch(all, admin, guest, user);
     }
 
     @Test
     public void createWithException() throws Exception {
         // No idea why JDBC validation is not working, tried only with User
-        Assume.assumeFalse(List.of(env.getActiveProfiles()).contains(Profiles.JDBC));
+//        Assume.assumeTrue(isJpaBased());
         validateRootCause(ConstraintViolationException.class, () -> service.create(new User(null, "  ", "mail@yandex.ru", "password", Role.USER)));
         validateRootCause(ConstraintViolationException.class, () -> service.create(new User(null, "User", "  ", "password", Role.USER)));
         validateRootCause(ConstraintViolationException.class, () -> service.create(new User(null, "User", "mail@yandex.ru", "  ", Role.USER)));

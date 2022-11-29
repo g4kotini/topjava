@@ -16,55 +16,12 @@ import ru.javawebinar.topjava.repository.UserRepository;
 import javax.validation.*;
 import java.util.*;
 
+import static ru.javawebinar.topjava.repository.JdbcUtil.*;
+
 @Repository
 @Transactional(readOnly = true)
 public class JdbcUserRepository implements UserRepository {
-
 //    private static final BeanPropertyRowMapper<User> ROW_MAPPER = BeanPropertyRowMapper.newInstance(User.class);
-
-    public  Validator validator;
-
-    {
-        ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
-        validator = factory.getValidator();
-    }
-
-    ResultSetExtractor<List<User>> usersExtractor = rs -> {
-        Map<Integer, User> users = new HashMap<>();
-        while (rs.next()) {
-            User user;
-            int id = rs.getInt(1);
-            if (users.containsKey(id)) {
-                user = users.get(id);
-                String roleString = rs.getString(9);
-                if (roleString != null) {
-                    user.getRoles().add(Role.valueOf(rs.getString(9)));
-                }
-            } else {
-                user = new User();
-                user.setId(id);
-                user.setName(rs.getString(2));
-                user.setEmail(rs.getString(3));
-                user.setPassword(rs.getString(4));
-                user.setRegistered(rs.getDate(5));
-                user.setEnabled(rs.getBoolean(6));
-                user.setCaloriesPerDay(rs.getInt(7));
-                String roleString = rs.getString(9);
-                user.setRoles(roleString == null ? null : EnumSet.of(Role.valueOf(roleString)));
-                users.put(id, user);
-            }
-        }
-        return new ArrayList<>(users.values());
-    };
-
-    ResultSetExtractor<Set<Role>> rolesExtractor = rs -> {
-        Set<Role> roles = new HashSet<>();
-        while (rs.next()) {
-            Role role = Role.valueOf(rs.getString(2));
-            roles.add(role);
-        }
-        return roles;
-    };
 
     private final JdbcTemplate jdbcTemplate;
 
@@ -93,35 +50,28 @@ public class JdbcUserRepository implements UserRepository {
         }
         if (user.isNew()) {
             Number newKey = insertUser.executeAndReturnKey(parameterSource);
-            jdbcTemplate.batchUpdate("INSERT INTO user_roles (user_id, role) VALUES (?, ?)", user.getRoles(), 2,
-                    (ps, role) -> {
-                ps.setInt(1, newKey.intValue());
-                ps.setString(2, role.name());
-            });
             user.setId(newKey.intValue());
+            insertRoles(user);
         } else {
-            int updated = namedParameterJdbcTemplate.update("""
+            if (namedParameterJdbcTemplate.update("""
                        UPDATE users SET name=:name, email=:email, password=:password, 
                        registered=:registered, enabled=:enabled, calories_per_day=:caloriesPerDay WHERE id=:id
-                    """, parameterSource);
-            Set<Role> dbRoles = jdbcTemplate.query("SELECT * FROM user_roles WHERE user_id = ?", rolesExtractor, user.getId());
-            Set<Role> actualRoles = user.getRoles();
-            // Should be in batch but maybe there is an easier way
-            actualRoles.forEach(role -> {
-                if (!dbRoles.contains(role)) {
-                    // INSERT
-                    jdbcTemplate.update("INSERT INTO user_roles (user_id, role) VALUES (?, ?)", user.getId(), role.name());
-                }
-            });
-            dbRoles.forEach(role -> {
-                if (!actualRoles.contains(role)) {
-                    // DELETE
-                    jdbcTemplate.update("DELETE FROM user_roles WHERE user_id = ? AND role = ?", user.getId(), role.name());
-                }
-            });
-            if (updated == 0) return null;
+                    """, parameterSource) == 0) {
+                return null;
+            }
+            jdbcTemplate.update("DELETE FROM user_roles WHERE user_id=?", user.getId());
+            insertRoles(user);
         }
         return user;
+    }
+
+    private void insertRoles(User user) {
+        Set<Role> roles = user.getRoles();
+        jdbcTemplate.batchUpdate("INSERT INTO user_roles (user_id, role) VALUES (?, ?)", roles, roles.size(),
+                (ps, role) -> {
+                    ps.setInt(1, user.id());
+                    ps.setString(2, role.name());
+                });
     }
 
     @Override
