@@ -1,15 +1,23 @@
 package ru.javawebinar.topjava;
 
 import ru.javawebinar.topjava.model.Meal;
+import ru.javawebinar.topjava.to.MealTo;
+import ru.javawebinar.topjava.util.MealsUtil;
+import ru.javawebinar.topjava.util.Util;
+import ru.javawebinar.topjava.web.SecurityUtil;
 
+import java.time.LocalDateTime;
 import java.time.Month;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static java.time.LocalDateTime.of;
 import static ru.javawebinar.topjava.model.AbstractBaseEntity.START_SEQ;
 
 public class MealTestData {
     public static final MatcherFactory.Matcher<Meal> MEAL_MATCHER = MatcherFactory.usingIgnoringFieldsComparator(Meal.class, "user");
+
+    public static final MatcherFactory.Matcher<MealTo> MEALTO_MATCHER = MatcherFactory.usingIgnoringFieldsComparator(MealTo.class, "user");
 
     public static final int NOT_FOUND = 10;
     public static final int MEAL1_ID = START_SEQ + 3;
@@ -26,6 +34,30 @@ public class MealTestData {
     public static final Meal adminMeal2 = new Meal(ADMIN_MEAL_ID + 1, of(2020, Month.JANUARY, 31, 21, 0), "Админ ужин", 1500);
 
     public static final List<Meal> meals = List.of(meal7, meal6, meal5, meal4, meal3, meal2, meal1);
+
+    public static List<MealTo> mealTos;
+
+    public static List<MealTo> mealTosFiltered;
+    public static List<MealTo> mealTosFilteredClosed;
+
+    public static final String startDate = "2020-01-30";
+    public static final String endDate = "2020-01-30";
+    public static final String startTime = "10:00:00";
+    public static final String endTime = "13:10:00";
+
+    public static final LocalDateTime startDateTime = LocalDateTime.parse(startDate + "T" + startTime);
+    public static final LocalDateTime endDateTime = LocalDateTime.parse(endDate + "T" + endTime);
+
+    static {
+        int caloriesPerDay = SecurityUtil.authUserCaloriesPerDay();
+        mealTos = MealsUtil.getTos(meals, caloriesPerDay);
+        mealTosFiltered = mealTos.stream()
+                .filter(mealTo -> Util.isBetweenHalfOpen(mealTo.getDateTime(), startDateTime, endDateTime))
+                .collect(Collectors.toList());
+        mealTosFilteredClosed =  mealTos.stream()
+                .filter(mealTo -> Util.isBetweenHalfOpen(mealTo.getDateTime(), null, endDateTime))
+                .collect(Collectors.toList());
+    }
 
     public static Meal getNew() {
         return new Meal(null, of(2020, Month.FEBRUARY, 1, 18, 0), "Созданный ужин", 300);
