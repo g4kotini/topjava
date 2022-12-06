@@ -69,4 +69,10 @@ public abstract class AbstractMealController {
         List<Meal> mealsDateFiltered = service.getBetweenInclusive(startDate, endDate, userId);
         return MealsUtil.getFilteredTos(mealsDateFiltered, SecurityUtil.authUserCaloriesPerDay(), startTime, endTime);
     }
+
+    public Meal getWithUser(int id) {
+        int userId = SecurityUtil.authUserId();
+        log.info("get meal {} with user {}", id, userId);
+        return service.getWithUser(id, userId);
+    }
 }
