@@ -39,7 +39,6 @@ public class MealUIController extends AbstractMealController {
                        @RequestParam String description,
                        @RequestParam int calories) {
         super.create(new Meal(null, dateTime, description, calories));
-//        return "redirect:/meals";
     }
 
     @Override

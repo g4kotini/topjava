@@ -31,7 +31,7 @@ $(function () {
             "order": [
                 [
                     0,
-                    "asc"
+                    "desc"
                 ]
             ]
         })
@@ -48,7 +48,7 @@ function filter() {
     });
 }
 
-function reset() {
+function resetForm() {
     $('#filterForm')[0].reset();
     updateTable();
 }

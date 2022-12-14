@@ -16,35 +16,31 @@
                 <div class="row">
                     <div class="col">
                         <label for="startDate"><spring:message code="meal.startDate"/>:</label>
-                        <input type="date" class="form-control" name="startDate" id="startDate"
-                               value="${param.startDate}">
+                        <input type="date" class="form-control" name="startDate" id="startDate">
                     </div>
                     <div class="col">
                         <label for="endDate"><spring:message code="meal.endDate"/>:</label>
-                        <input type="date" class="form-control" name="endDate" id="endDate"
-                               value="${param.endDate}">
+                        <input type="date" class="form-control" name="endDate" id="endDate">
                     </div>
                 </div>
                 <p/>
                 <div class="row">
                     <div class="col">
                         <label for="startTime"><spring:message code="meal.startTime"/>:</label>
-                        <input type="time" class="form-control" name="startTime" id="startTime"
-                               value="${param.startTime}">
+                        <input type="time" class="form-control" name="startTime" id="startTime">
                     </div>
                     <div class="col">
                         <label for="endTime"><spring:message code="meal.endTime"/>:</label>
-                        <input type="time" class="form-control" name="endTime" id="endTime"
-                               value="${param.endTime}">
+                        <input type="time" class="form-control" name="endTime" id="endTime">
                     </div>
                 </div>
                 <div class="row">
                     <div class="col">
-                        <button type="submit" class="btn btn-primary mt-3" onclick="filter()"><spring:message
+                        <button type="button" class="btn btn-primary mt-3" onclick="filter()"><spring:message
                                 code="meal.filter"/></button>
                     </div>
                     <div class="col">
-                        <button type="button" class="btn btn-primary mt-3" onclick="reset()"><spring:message
+                        <button type="button" class="btn btn-primary mt-3" onclick="resetForm()"><spring:message
                                 code="common.reset"/></button>
                     </div>
                 </div>
