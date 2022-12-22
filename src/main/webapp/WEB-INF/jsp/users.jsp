@@ -76,6 +76,11 @@
         </div>
     </div>
 </div>
+<script>
+    const i18n = [];
+    i18n["addTitle"] = '<spring:message code="user.add"/>';
+    i18n["editTitle"] = '<spring:message code="user.edit"/>';
+</script>
 <jsp:include page="fragments/footer.jsp"/>
 </body>
 </html>

@@ -109,6 +109,11 @@
         </div>
     </div>
 </div>
+<script>
+    const i18n = [];
+    i18n["addTitle"] = '<spring:message code="meal.add"/>';
+    i18n["editTitle"] = '<spring:message code="meal.edit"/>';
+</script>
 <jsp:include page="fragments/footer.jsp"/>
 </body>
 </html>
